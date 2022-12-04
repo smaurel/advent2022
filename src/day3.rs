@@ -1,15 +1,6 @@
-use std::{collections::HashMap, hash::Hash, vec};
+use std::{collections::HashMap, vec};
 
-use aoc_runner_derive::{aoc, aoc_generator};
-
-// #[aoc_generator(day3)]
-// pub fn input_generator(input: &str) -> Vec<Round> {
-//     input
-//         .trim()
-//         .lines()
-//         .map(|line| Round::from_line(line))
-//         .collect()
-// }
+use aoc_runner_derive::aoc;
 
 #[aoc(day3, part1)]
 pub fn solve_part1(txt: &str) -> u32 {
