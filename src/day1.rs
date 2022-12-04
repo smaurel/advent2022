@@ -1,22 +1,23 @@
-use aoc_runner_derive::aoc;
+use aoc_runner_derive::{aoc, aoc_generator};
 
-#[aoc(day1,part1)]
-pub fn solve_part1(lines: &str) -> i32 {
+#[aoc_generator(day1)]
+pub fn input_generator(input: &str) -> Vec<u32> {
+    input
+        .trim()
+        .split("\n\n")
+        .map(|elf| elf.lines().map(|line| line.parse::<u32>().unwrap()))
+        .map(|elf| elf.sum())
+        .collect()
+}
 
-  let mut calories = vec![];
-  let mut max_calory = 0;
-  let mut current_cal = 0;
-  for line in lines.lines() {
-    match line.parse::<i32>() {
-      Err(_) => {
-        calories.push(current_cal);
-        if current_cal > max_calory {
-          max_calory = current_cal.clone();
-        }
-        current_cal = 0;
-      },
-      Ok(v) => current_cal += v,
-    };
-  }
-  max_calory
+#[aoc(day1, part1)]
+pub fn solve_part1(rations: &Vec<u32>) -> u32 {
+    *rations.iter().max().unwrap()
+}
+
+#[aoc(day1, part2)]
+pub fn solve_part2(rations: &Vec<u32>) -> u32 {
+    let mut sorted_rations = rations.clone();
+    sorted_rations.sort();
+    sorted_rations[sorted_rations.len() - 3..].iter().sum()
 }
