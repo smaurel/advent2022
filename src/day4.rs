@@ -71,17 +71,3 @@ pub fn solve_part1(pairs: &Vec<Pair>) -> usize {
 pub fn solve_part2(pairs: &Vec<Pair>) -> usize {
     pairs.iter().filter(|pair| pair.has_inter()).count()
 }
-
-// #[aoc(day4, part2)]
-// pub fn solve_part2(txt: &str) -> u32 {
-//     let mut group: Vec<&str> = vec![];
-//     let mut total_priority: u32 = 0;
-//     for (i, line) in txt.trim().lines().enumerate() {
-//         group.push(line);
-//         if i % 3 == 2 {
-//             total_priority += get_priority(find_dupe(&group));
-//             group.clear();
-//         }
-//     }
-//     total_priority
-// }

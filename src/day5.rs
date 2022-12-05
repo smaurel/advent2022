@@ -1,6 +1,6 @@
-use std::{collections::HashMap, fs};
+use std::cmp;
 
-use aoc_runner_derive::{aoc, aoc_generator};
+use aoc_runner_derive::aoc;
 
 #[derive(Debug)]
 pub struct Move {
@@ -9,14 +9,20 @@ pub struct Move {
     to: usize,
 }
 
-// impl Move {
-//     fn exec(&self, stacks: &mut HashMap<usize, Vec<char>>) {
-//         for i in 0..self.quantity {
-//             let e = stacks.entry(self.from);
-//             e.
-//         }
-//     }
-// }
+impl Move {
+    fn exec(&self, stacks: &mut Vec<Vec<char>>) {
+        for _ in 0..cmp::min(self.quantity, stacks[self.from - 1].len()) {
+            let e = stacks[self.from - 1].pop().unwrap();
+            stacks[self.to - 1].push(e);
+        }
+    }
+
+    fn exec_p2(&self, stacks: &mut Vec<Vec<char>>) {
+        let starting_range = cmp::max(stacks[self.from - 1].len() - self.quantity, 0);
+        let mut retrieved_containers = stacks[self.from - 1].split_off(starting_range);
+        stacks[self.to - 1].append(&mut retrieved_containers);
+    }
+}
 
 impl From<&str> for Move {
     fn from(input: &str) -> Self {
@@ -37,7 +43,7 @@ pub fn parse_input_generator(input: &str) -> (Vec<Vec<char>>, Vec<Move>) {
         .skip(1)
         .map(|line| line.chars().skip(1).step_by(4));
     let mut stacks = vec![];
-    stack_chars.for_each(|line| stacks = push_line(stacks, line));
+    stack_chars.for_each(|line| push_line(&mut stacks, line));
 
     let moves = split
         .next()
@@ -49,26 +55,28 @@ pub fn parse_input_generator(input: &str) -> (Vec<Vec<char>>, Vec<Move>) {
     (stacks, moves)
 }
 
-pub fn push_line(stacks: Vec<Vec<char>>, line: impl Iterator<Item = char>) -> Vec<Vec<char>> {
+pub fn push_line(stacks: &mut Vec<Vec<char>>, line: impl Iterator<Item = char>) {
     line.enumerate()
         .filter(|(_, c)| c != &' ')
         .for_each(|(i, c)| {
-            let mut stack = stacks.get(i).unwrap_or(&&mut vec![]);
-            *stack.push(c);
+            let stack = stacks.get(i);
+            match stack {
+                Some(_) => stacks[i].push(c),
+                None => stacks.push(vec![c]),
+            };
         });
-
-    stacks
 }
 
 #[aoc(day5, part1)]
-pub fn solve_part1(input: &str) -> usize {
-    let (stacks, moves) = parse_input_generator(input);
-    println!("{:#?}", stacks);
-    // println!("{:#?}", moves);
-    5
+pub fn solve_part1(input: &str) -> String {
+    let (mut stacks, moves) = parse_input_generator(input);
+    moves.iter().for_each(|mv| mv.exec(&mut stacks));
+    stacks.iter().map(|stack| stack.last().unwrap()).collect()
 }
 
-// #[aoc(day5, part2)]
-// pub fn solve_part2(pairs: &Vec<Pair>) -> usize {
-//     pairs.iter().filter(|pair| pair.has_inter()).count()
-// }
+#[aoc(day5, part2)]
+pub fn solve_part2(input: &str) -> String {
+    let (mut stacks, moves) = parse_input_generator(input);
+    moves.iter().for_each(|mv| mv.exec_p2(&mut stacks));
+    stacks.iter().map(|stack| stack.last().unwrap()).collect()
+}
