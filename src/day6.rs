@@ -1,15 +1,15 @@
 use aoc_runner_derive::aoc;
+use std::collections::HashSet;
 
-pub fn get_first_marker(line: &str) -> usize {
-    for i in 0..line.len() - 3 {
-        let curr_range = &line[i..i + 4];
-        if curr_range
-            .chars()
-            .map(|c| curr_range.chars().filter(|ch| *ch == c).count())
-            .sum::<usize>()
-            == curr_range.len()
-        {
-            return i + 4;
+pub fn get_first_marker(line: &str, matching_chars: usize) -> usize {
+    let mut char_set = HashSet::new();
+    for i in 0..line.len() - matching_chars + 1 {
+        char_set.clear();
+        line[i..i + matching_chars].chars().for_each(|c| {
+            char_set.insert(c);
+        });
+        if char_set.len() == matching_chars {
+            return i + matching_chars;
         }
     }
     0
@@ -17,12 +17,18 @@ pub fn get_first_marker(line: &str) -> usize {
 
 #[aoc(day6, part1)]
 pub fn solve_part1(input: &str) -> usize {
-    input.lines().map(|line| get_first_marker(line)).sum()
+    input
+        .lines()
+        .map(|line| get_first_marker(line, 4))
+        .next()
+        .unwrap()
 }
 
-// #[aoc(day6, part2)]
-// pub fn solve_part2(input: &str) -> String {
-// let (mut stacks, moves) = parse_input_generator(input);
-// moves.iter().for_each(|mv| mv.exec_p2(&mut stacks));
-// stacks.iter().map(|stack| stack.last().unwrap()).collect()
-// }
+#[aoc(day6, part2)]
+pub fn solve_part2(input: &str) -> usize {
+    input
+        .lines()
+        .map(|line| get_first_marker(line, 14))
+        .next()
+        .unwrap()
+}
