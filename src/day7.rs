@@ -99,8 +99,7 @@ impl BrowsingState {
     }
 }
 
-#[aoc(day7, part1)]
-pub fn solve_part1(input: &str) -> usize {
+pub fn parse_folders(input: &str) -> BrowsingState {
     let folder_stack: Vec<Folder> = vec![];
     let other_folders: HashSet<Folder> = HashSet::new();
     let mut browsing_state = BrowsingState {
@@ -118,28 +117,18 @@ pub fn solve_part1(input: &str) -> usize {
     }
 
     browsing_state.back_to_dir();
+    browsing_state
+}
+
+#[aoc(day7, part1)]
+pub fn solve_part1(input: &str) -> usize {
+    let browsing_state = parse_folders(input);
     browsing_state.get_under_size(100000)
 }
 
 #[aoc(day7, part2)]
 pub fn solve_part2(input: &str) -> usize {
-    let folder_stack: Vec<Folder> = vec![];
-    let other_folders: HashSet<Folder> = HashSet::new();
-    let mut browsing_state = BrowsingState {
-        folder_stack,
-        other_folders,
-    };
-    for line in input.lines() {
-        match &line[..4] {
-            // "push or pop on stack"
-            "$ cd" => browsing_state.cd_dir(line),
-            "$ ls" => {}
-            "dir " => {}
-            _ => browsing_state.add_size(line),
-        };
-    }
-
-    browsing_state.back_to_dir();
+    let browsing_state = parse_folders(input);
     let size_to_free = browsing_state.get_total_size() - 40000000;
     browsing_state.find_smallest(size_to_free).size
 }
