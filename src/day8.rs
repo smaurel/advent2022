@@ -1,10 +1,11 @@
 use std::{
     collections::{HashMap, HashSet},
-    hash::Hash,
-    rc::Rc,
+    iter::Rev,
+    ops::Range,
 };
 
 use aoc_runner_derive::{aoc, aoc_generator};
+use itertools::Either;
 
 #[aoc_generator(day8)]
 pub fn parse(input: &str) -> (HashMap<(usize, usize), u32>, (usize, usize)) {
@@ -27,6 +28,15 @@ pub fn parse(input: &str) -> (HashMap<(usize, usize), u32>, (usize, usize)) {
     (grid, sizes)
 }
 
+pub fn get_range(max: &usize, reverse: bool) -> Either<Range<usize>, Rev<Range<usize>>> {
+    let range = 0..*max;
+    if reverse {
+        Either::Right(range.rev())
+    } else {
+        Either::Left(range)
+    }
+}
+
 pub fn browse_column(
     line_index: usize,
     column_size: &usize,
@@ -35,12 +45,7 @@ pub fn browse_column(
     mut visible_trees: HashSet<(usize, usize)>,
 ) -> HashSet<(usize, usize)> {
     let mut highest_for_col = -1;
-    let range = if reverse {
-        (*column_size - 1)..0
-    } else {
-        0..*column_size
-    };
-    for col_index in range {
+    for col_index in get_range(column_size, reverse) {
         let curr_height = grid
             .get(&(col_index, line_index))
             .expect("tried to get outside of grid");
@@ -63,12 +68,7 @@ pub fn browse_line(
     mut visible_trees: HashSet<(usize, usize)>,
 ) -> HashSet<(usize, usize)> {
     let mut highest_for_line = -1;
-    let range = if reverse {
-        (*line_size - 1)..0
-    } else {
-        0..*line_size
-    };
-    for line_index in range {
+    for line_index in get_range(line_size, reverse) {
         let curr_height = grid
             .get(&(col_index, line_index))
             .expect("tried to get outside of grid");
