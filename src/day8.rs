@@ -27,7 +27,7 @@ pub fn parse(
                 sizes.1 = line_index + 1;
             }
             let tree_height = c.to_digit(10).expect("cannot parse");
-            let mut trees_of_height = trees_by_size.entry(tree_height).or_insert(vec![]);
+            let trees_of_height = trees_by_size.entry(tree_height).or_insert(vec![]);
             trees_of_height.push((col_index, line_index));
             grid.insert((col_index, line_index), tree_height);
         })
@@ -133,7 +133,7 @@ pub fn solve_part1(
 
 #[aoc(day8, part2)]
 pub fn solve_part2(
-    (_, _, trees_by_size): &(
+    (_, (col_size, line_size), trees_by_size): &(
         HashMap<(usize, usize), u32>,
         (usize, usize),
         HashMap<u32, Vec<(usize, usize)>>,
@@ -141,18 +141,22 @@ pub fn solve_part2(
 ) -> usize {
     let mut max_score = 0;
     for tested_height in (7..10).rev() {
+        let default_vec: Vec<(usize, usize)> = vec![];
+        let trees_of_size = match trees_by_size.get(&tested_height) {
+            Some(vector) => vector,
+            None => &default_vec,
+        };
         // Top Right Bottom Left
-        let mut distance_to_closest: Vec<usize> = vec![];
-        for tree in trees_by_size
-            .get(&tested_height)
-            .expect("getting wrong height")
-        {
+        for tree in trees_of_size {
             // set distance to closest by using forest boundaries as a default value
+            let mut distance_to_closest: Vec<usize> =
+                vec![tree.0, line_size - tree.1, col_size - tree.0, tree.1];
             for other_height in tested_height..10 {
-                for other_tree in trees_by_size
-                    .get(&other_height)
-                    .expect("getting wrong height")
-                {
+                let trees_of_other_size = match trees_by_size.get(&other_height) {
+                    Some(vector) => vector,
+                    None => &default_vec,
+                };
+                for other_tree in trees_of_other_size {
                     if other_tree.0 != tree.0 && other_tree.1 != tree.1 || other_tree == tree {
                         continue;
                     }
