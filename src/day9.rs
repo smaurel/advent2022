@@ -1,9 +1,9 @@
 use std::{
-    cell::{Ref, RefCell},
+    cell::RefCell,
     collections::HashSet,
     hash::Hash,
     ops::{Add, Sub},
-    rc::{Rc, Weak},
+    rc::Rc,
 };
 
 use aoc_runner_derive::{aoc, aoc_generator};
