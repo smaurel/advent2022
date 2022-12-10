@@ -93,16 +93,16 @@ pub fn browse_line(
 pub fn get_distance_from(base_tree: &(i32, i32), other_tree: &(i32, i32)) -> (usize, usize) {
     match (base_tree.0 - other_tree.0, base_tree.1 - other_tree.1) {
         (col_distance, line_distance) if col_distance > 0 && line_distance == 0 => {
-            (col_distance as usize, 1)
+            (col_distance as usize, 3)
         }
         (col_distance, line_distance) if col_distance < 0 && line_distance == 0 => {
-            (-col_distance as usize, 3)
+            (-col_distance as usize, 1)
         }
         (col_distance, line_distance) if col_distance == 0 && line_distance > 0 => {
-            (line_distance as usize, 2)
+            (line_distance as usize, 0)
         }
         (col_distance, line_distance) if col_distance == 0 && line_distance < 0 => {
-            (-line_distance as usize, 0)
+            (-line_distance as usize, 2)
         }
         _ => unreachable!("comapred to self ??"),
     }
@@ -110,7 +110,7 @@ pub fn get_distance_from(base_tree: &(i32, i32), other_tree: &(i32, i32)) -> (us
 
 #[aoc(day8, part1)]
 pub fn solve_part1(
-    (grid, (line_size, col_size), _): &(
+    (grid, (col_size, line_size), _): &(
         HashMap<(usize, usize), u32>,
         (usize, usize),
         HashMap<u32, Vec<(usize, usize)>>,
@@ -133,14 +133,14 @@ pub fn solve_part1(
 
 #[aoc(day8, part2)]
 pub fn solve_part2(
-    (_, (col_size, line_size), trees_by_size): &(
+    (grid, (col_size, line_size), trees_by_size): &(
         HashMap<(usize, usize), u32>,
         (usize, usize),
         HashMap<u32, Vec<(usize, usize)>>,
     ),
 ) -> usize {
     let mut max_score = 0;
-    for tested_height in (7..10).rev() {
+    for tested_height in (5..10).rev() {
         let default_vec: Vec<(usize, usize)> = vec![];
         let trees_of_size = match trees_by_size.get(&tested_height) {
             Some(vector) => vector,
@@ -148,16 +148,30 @@ pub fn solve_part2(
         };
         // Top Right Bottom Left
         for tree in trees_of_size {
+            if tree.0 == 0 || tree.1 == 0 || tree.0 == line_size - 1 || tree.1 == col_size - 1 {
+                continue;
+            }
+
             // set distance to closest by using forest boundaries as a default value
-            let mut distance_to_closest: Vec<usize> =
-                vec![tree.0, line_size - tree.1, col_size - tree.0, tree.1];
+            let mut distance_to_closest: Vec<(usize, usize)> = vec![
+                (tree.1, *(grid.get(&(tree.0, 0)).unwrap()) as usize),
+                (
+                    line_size - 1 - tree.0,
+                    *(grid.get(&(tree.1, line_size - 1)).unwrap()) as usize,
+                ),
+                (
+                    col_size - 1 - tree.1,
+                    *(grid.get(&(col_size - 1, tree.0)).unwrap()) as usize,
+                ),
+                (tree.0, *(grid.get(&(tree.1, 0)).unwrap()) as usize),
+            ];
             for other_height in tested_height..10 {
                 let trees_of_other_size = match trees_by_size.get(&other_height) {
                     Some(vector) => vector,
                     None => &default_vec,
                 };
                 for other_tree in trees_of_other_size {
-                    if other_tree.0 != tree.0 && other_tree.1 != tree.1 || other_tree == tree {
+                    if (other_tree.0 != tree.0 && other_tree.1 != tree.1) || other_tree == tree {
                         continue;
                     }
 
@@ -165,17 +179,15 @@ pub fn solve_part2(
                         &(tree.0 as i32, tree.1 as i32),
                         &(other_tree.0 as i32, other_tree.1 as i32),
                     );
-                    if distance_to_closest[index] > dist {
-                        distance_to_closest[index] = dist;
+
+                    let closest = distance_to_closest[index];
+                    if closest.0 > dist {
+                        distance_to_closest[index] = (dist, other_height as usize);
                     }
                 }
             }
-            let score: usize = distance_to_closest.iter().product();
+            let score: usize = distance_to_closest.iter().map(|dist| dist.0).product();
             if score > max_score {
-                println!(
-                    "setting new max for tree of coords {:#?}, with distances  {:#?}",
-                    &tree, &distance_to_closest
-                );
                 max_score = score;
             }
         }
