@@ -1,6 +1,9 @@
 use std::{
+    cell::{Ref, RefCell},
     collections::HashSet,
+    hash::Hash,
     ops::{Add, Sub},
+    rc::{Rc, Weak},
 };
 
 use aoc_runner_derive::{aoc, aoc_generator};
@@ -79,39 +82,36 @@ impl From<&str> for Move {
     }
 }
 
-pub struct Head {
+#[derive(Clone)]
+pub struct Knot {
     position: Coordinate,
-    tail: Tail,
+    tail: Option<Rc<RefCell<Knot>>>,
+    followed_positions: HashSet<Coordinate>,
 }
 
-impl Head {
-    pub fn new() -> Self {
-        return Self {
+impl Knot {
+    pub fn new(size: usize) -> Self {
+        let mut new_knot = Self {
             position: Coordinate(0, 0),
-            tail: Tail::new(),
+            followed_positions: HashSet::<Coordinate>::new(),
+            tail: None,
         };
+
+        if size == 0 {
+            return new_knot;
+        }
+        new_knot.tail = Some(Rc::new(RefCell::new(Knot::new(size - 1))));
+        return new_knot;
     }
 
-    pub fn move_with(&mut self, mv: &Move) -> Vec<Coordinate> {
-        let mut followed_positions: Vec<Coordinate> = vec![];
+    pub fn move_with(&mut self, mv: &Move) {
         for vector in mv.iter_vector() {
             self.position = &self.position + &vector;
-            self.tail.follow(&self.position);
-            followed_positions.push(self.tail.position.clone())
+            match &self.tail {
+                Some(t) => t.borrow_mut().follow(&self.position),
+                None => {}
+            };
         }
-        followed_positions
-    }
-}
-
-pub struct Tail {
-    position: Coordinate,
-}
-
-impl Tail {
-    pub fn new() -> Self {
-        return Self {
-            position: Coordinate(0, 0),
-        };
     }
 
     pub fn follow(&mut self, position: &Coordinate) {
@@ -133,30 +133,46 @@ impl Tail {
             Coordinate(x, y) if x.abs() == 1 => {
                 self.position = &self.position + &Coordinate(x, if y > 0 { y - 1 } else { y + 1 })
             }
+            Coordinate(x, y) if x.abs() == 2 && y.abs() == 2 => {
+                self.position = &self.position
+                    + &Coordinate(
+                        if x > 0 { x - 1 } else { x + 1 },
+                        if y > 0 { y - 1 } else { y + 1 },
+                    )
+            }
             _ => unreachable!("Found unmatched vector while following : {:#?}", vec),
         };
+
+        match &self.tail {
+            Some(t) => t.borrow_mut().follow(&self.position),
+            None => {
+                self.followed_positions.insert(self.position.clone());
+            }
+        }
+    }
+
+    pub fn get_tail(&self) -> Self {
+        match &self.tail {
+            Some(t) => t.borrow().get_tail().clone(),
+            None => self.clone(),
+        }
     }
 }
 
 #[aoc(day9, part1)]
 pub fn solve_part1(moves: &Vec<Move>) -> usize {
-    let mut head = Head::new();
-    let mut positions = HashSet::<Coordinate>::new();
-
+    let mut head = Knot::new(1);
     for mv in moves {
-        let new_positions = head.move_with(mv);
-        new_positions.into_iter().for_each(|pos| {
-            positions.insert(pos);
-        });
+        head.move_with(mv);
     }
-
-    positions.len()
+    head.get_tail().followed_positions.len()
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-
-//     #[test]
-//     fn test
-// }
+#[aoc(day9, part2)]
+pub fn solve_part2(moves: &Vec<Move>) -> usize {
+    let mut head = Knot::new(9);
+    for mv in moves {
+        head.move_with(mv);
+    }
+    head.get_tail().followed_positions.len()
+}
