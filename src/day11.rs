@@ -3,10 +3,10 @@ use std::{cell::RefCell, rc::Rc};
 
 use aoc_runner_derive::aoc;
 
-static PPCM: AtomicU64 = AtomicU64::new(1);
+static LCM: AtomicU64 = AtomicU64::new(1);
 
 pub fn parse_monkeys(input: &str) -> Vec<Rc<RefCell<Monkey>>> {
-    PPCM.store(1, Ordering::Relaxed);
+    LCM.store(1, Ordering::Relaxed);
     let monkeys = input
         .trim()
         .split("\n\n")
@@ -16,10 +16,10 @@ pub fn parse_monkeys(input: &str) -> Vec<Rc<RefCell<Monkey>>> {
 
     // Optimisation :  in order to get values in check, we need to compute ppcm of all dividers
     for monkey in &monkeys {
-        PPCM.store(
+        LCM.store(
             num::integer::lcm(
                 monkey.borrow().test.divisibility as u64,
-                PPCM.load(Ordering::Relaxed),
+                LCM.load(Ordering::Relaxed),
             ),
             Ordering::Relaxed,
         );
@@ -103,7 +103,7 @@ impl Operation {
 
         // Taking this value here does not affect divisibility by any of values from which
         // LCM has been computed, and helps us keeping values from overflowing
-        result % PPCM.load(Ordering::Relaxed)
+        result % LCM.load(Ordering::Relaxed)
     }
 }
 
@@ -186,7 +186,7 @@ impl Monkey {
 pub fn solve_part1(input: &str) -> usize {
     let monkeys = parse_monkeys(input);
     {
-        for i in 0..20 {
+        for _ in 0..20 {
             for monkey in &monkeys {
                 let mut monkey = monkey.borrow_mut();
                 monkey.take_turn(&monkeys, true);
