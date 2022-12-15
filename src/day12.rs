@@ -1,20 +1,4 @@
 use std::{
-<<<<<<< HEAD
-    cell::RefCell,
-    collections::HashSet,
-    hash::Hash,
-    ops::{Add, Sub},
-    rc::Rc,
-};
-
-use aoc_runner_derive::{aoc, aoc_generator};
-
-#[aoc_generator(day12)]
-pub fn parse(input: &str) -> Vec<Move> {
-    input.lines().map(|line| line.into()).collect::<Vec<Move>>()
-}
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-=======
     collections::{HashMap, HashSet},
     hash::Hash,
     ops::{Add, Sub},
@@ -24,21 +8,17 @@ use aoc_runner_derive::aoc;
 use itertools::Itertools;
 
 #[derive(Hash, PartialEq, Eq, Clone, Copy, Debug)]
->>>>>>> e83ccc9 (Day 12)
 pub struct Coordinate(i32, i32);
 
 impl Coordinate {
     pub fn is_adjacent_with(&self, other: &Self) -> bool {
         (self.0 - other.0).abs() <= 1 && (self.1 - other.1).abs() <= 1
     }
-<<<<<<< HEAD
-=======
 
     pub fn distance(&self, other: &Self) -> usize {
         let dist_vec = other - self;
         (dist_vec.0.abs() + dist_vec.1.abs()) as usize
     }
->>>>>>> e83ccc9 (Day 12)
 }
 
 impl<'a, 'b> Add<&'b Coordinate> for &'a Coordinate {
